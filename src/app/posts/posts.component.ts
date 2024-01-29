@@ -1,8 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { PostService } from './service/post.service';
-import { patchState, signalState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { Post } from './types/post.type';
+import { pipe, switchMap, tap } from 'rxjs';
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
+
 
 export interface PostState {
   posts: Post[];
@@ -20,7 +23,7 @@ export const postStore = signalStore(
   withComputed((store) => ({
     postsCount: computed(() => store.posts().length)
   })),
-  withMethods((store) => ({
+  withMethods((store, postService = inject(PostService)) => ({
     addPost(title: string) {
       const newPost: Post = {id: crypto.randomUUID(), title};
       const updatedPosts = [...store.posts(), newPost];
@@ -29,8 +32,24 @@ export const postStore = signalStore(
     removePost(id: string) {
       const updatedPosts = store.posts().filter(post => post.id !== id);
       patchState(store, (store) => ({posts: updatedPosts}));
+    },
+    loadPosts: rxMethod<void>(
+      pipe(
+        switchMap(() => {
+          return postService.getAllPosts().pipe(
+            tap(posts => {
+              patchState(store, {posts});
+            })
+          )
+        })
+      )
+    )
+  })),
+  withHooks({
+    onInit(store) {
+      store.loadPosts();
     }
-  }))
+  })
 )
 
 @Component({

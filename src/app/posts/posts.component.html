@@ -17,10 +17,23 @@
             <ul class="list-group">
                 @for (post of store.posts(); track $index) {
                     <li class="list-group-item d-flex justify-content-between">
-                        {{ post.title }}
+                        <ng-container *ngIf="editingPostId !== post.id; else editMode">
+                            {{ post.title }}
+                        </ng-container>
+                        <ng-template #editMode>
+                            <input type="text" [(ngModel)]="editingPostTitle" class="form-control">
+                        </ng-template>
                         <div>
+                            <ng-container *ngIf="editingPostId !== post.id; else saveCancelButtons">
+                                <i (click)="editPost(post.id, post.title)" class="bi bi-pencil-square text-info"></i>
+                            </ng-container>
+                            <ng-template #saveCancelButtons>
+                                <i (click)="saveEditedPost()" class="bi bi-check-square text-success" style="margin-right: 5px;"></i>
+                                <i (click)="cancelEdit()" class="bi bi-x-square text-danger"></i>
+                            </ng-template>
+                            <span style="margin-right: 10px;"></span>
                             <i (click)="removePost(post.id)" class="bi bi-x-lg text-danger"></i>
-                          </div>
+                        </div>
                     </li>
                 }
             </ul>

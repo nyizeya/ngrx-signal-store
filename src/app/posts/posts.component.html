@@ -1,0 +1,29 @@
+<div class="row">
+    <p>{{ store.postsCount() }}</p>
+    <div class="">
+        <form [formGroup]="addForm" (ngSubmit)="onAdd()">
+            <input type="text" class="form-control" placeholder="Add..." formControlName="title">
+        </form>
+
+        @if (store.isLoading()) {
+            <div>Loading...</div>
+        }
+
+        @if (store.error()) {
+            <div>{{ store.error() }}</div>
+        }
+
+        <div class="mt-4">
+            <ul class="list-group">
+                @for (post of store.posts(); track $index) {
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ post.title }}
+                        <div>
+                            <i (click)="removePost(post.id)" class="bi bi-x-lg text-danger"></i>
+                          </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
